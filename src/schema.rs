@@ -40,8 +40,13 @@ diesel::table! {
         email -> Varchar,
         password_hash -> Varchar,
         created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
+
+diesel::joinable!(order_items -> orders (order_id));
+diesel::joinable!(order_items -> products (product_id));
+diesel::joinable!(orders -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     order_items,
