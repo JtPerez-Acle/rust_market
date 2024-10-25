@@ -18,6 +18,7 @@ This guide explains how to set up and run tests for the `rust_market` project. I
 - **Cargo** package manager.
 - **PostgreSQL** installed and running locally.
 - Basic understanding of Rust and Diesel ORM.
+- **flexi_logger** crate added to your project.
 
 ## Setting Up the Test Database
 
@@ -66,13 +67,25 @@ This guide explains how to set up and run tests for the `rust_market` project. I
        .expect("DATABASE_URL_TEST must be set in .env.test");
    ```
 
-3. **Passing the Test Database URL:**
+3. **Configuring Logging in Tests:**
 
-   When establishing the connection pool in tests:
+   To capture logs during testing, initialize the logger in your tests. You can set up the logger in a common test module or in the `setup` function:
 
    ```rust
-   let pool = db::establish_connection_pool(Some(&test_database_url))
-       .expect("Failed to create pool");
+   // In your tests/common.rs or test_helpers.rs
+   pub fn initialize_test_logging() {
+       let _ = logging::init_logger();
+   }
+   ```
+
+   Then, call this function at the beginning of your tests:
+
+   ```rust
+   #[test]
+   fn test_example() {
+       initialize_test_logging();
+       // ... rest of the test code ...
+   }
    ```
 
 ## Running the Tests
@@ -113,6 +126,7 @@ cargo test --test models_tests -- --nocapture
 
 # Run performance tests
 cargo test --test performance_tests -- --nocapture
+
 ```
 
 ### Models Tests (`models_tests.rs`)

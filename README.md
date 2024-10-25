@@ -14,6 +14,7 @@ An overview of the `rust_market` project as of October 25, 2024.
 - **PostgreSQL with Diesel ORM**: Implements PostgreSQL as the database, managed through Diesel ORM for type-safe and efficient database interactions.
 - **Blockchain Integration**: Prepares models and structures compatible with Web3 standards, ensuring seamless interaction with blockchain technologies.
 - **AI Integration via APIs**: Plans to integrate AI functionalities through APIs, with strong error handling and logging mechanisms using `reqwest`.
+- **Custom Logging System**: Integrated a custom logging system using `flexi_logger` for structured and level-based logging.
 
 ## Project Milestones
 
@@ -21,6 +22,7 @@ An overview of the `rust_market` project as of October 25, 2024.
 - **Database Schema Setup**: Created migrations for setting up the database schema, including tables for `users`, `products`, `orders`, and `order_items`.
 - **Model Definitions**: Defined Rust structs in `src/models.rs` corresponding to database tables, deriving traits like `Queryable`, `Insertable`, `Serialize`, and `Deserialize` for Web3 compatibility.
 - **Database Connection Pool**: Established a connection pool in `src/db.rs` using `r2d2` and `diesel`, with robust error handling and environment variable management.
+- **Logging System Implementation**: Implemented a custom logging system in `src/logging.rs` using `flexi_logger`, and initialized it in `src/main.rs`.
 - **Server Configuration**: Configured the Actix-Web server with middleware for logging and included a health check endpoint.
 - **Testing Suite**: Implemented comprehensive tests to ensure reliability and correctness of application components.
 
@@ -79,10 +81,6 @@ Run the test suite using:
 ```bash
 cargo test
 ```
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request for any enhancements or bug fixes.
 
 ## License
 

@@ -14,6 +14,7 @@ Una visión general del proyecto `rust_market` al 25 de octubre de 2024.
 - **PostgreSQL con Diesel ORM**: Implementa PostgreSQL como base de datos, gestionada a través de Diesel ORM para interacciones de base de datos eficientes y seguras.
 - **Integración Blockchain**: Prepara modelos y estructuras compatibles con estándares Web3, asegurando una interacción sin problemas con tecnologías de blockchain.
 - **Integración de IA vía APIs**: Planea integrar funcionalidades de IA a través de APIs, con manejo de errores sólido y mecanismos de registro utilizando `reqwest`.
+- **Sistema de Registro Personalizado**: Se integró un sistema de registro personalizado utilizando `flexi_logger` para un registro estructurado y basado en niveles.
 
 ## Hitos del Proyecto
 
@@ -21,6 +22,7 @@ Una visión general del proyecto `rust_market` al 25 de octubre de 2024.
 - **Configuración del Esquema de Base de Datos**: Se crearon migraciones para configurar el esquema de la base de datos, incluyendo tablas para `users`, `products`, `orders` y `order_items`.
 - **Definición de Modelos**: Se definieron structs de Rust en `src/models.rs` correspondientes a las tablas de la base de datos, derivando traits como `Queryable`, `Insertable`, `Serialize` y `Deserialize` para compatibilidad con Web3.
 - **Pool de Conexión a la Base de Datos**: Se estableció un pool de conexiones en `src/db.rs` usando `r2d2` y `diesel`, con manejo de errores robusto y gestión de variables de entorno.
+- **Implementación del Sistema de Registro**: Se implementó un sistema de registro personalizado en `src/logging.rs` utilizando `flexi_logger`, y se inicializó en `src/main.rs`.
 - **Configuración del Servidor**: Se configuró el servidor Actix-Web con middleware para registro de logs y se incluyó un endpoint de verificación de salud.
 - **Suite de Pruebas**: Se implementaron pruebas integrales para garantizar la confiabilidad y corrección de los componentes de la aplicación.
 
@@ -42,6 +44,7 @@ flowchart TD
 - **Rust**: Asegúrate de tener Rust instalado en tu sistema.
 - **PostgreSQL**: Configura una instancia de base de datos PostgreSQL.
 - **Diesel CLI**: Instala Diesel CLI para gestionar las migraciones de la base de datos.
+- **flexi_logger**: Asegúrate de que el crate `flexi_logger` esté incluido en tu `Cargo.toml`.
 
 ### Instalación
 
@@ -79,10 +82,6 @@ Ejecuta la suite de pruebas usando:
 ```bash
 cargo test
 ```
-
-## Contribuyendo
-
-¡Las contribuciones son bienvenidas! Por favor, abre un issue o envía un pull request para cualquier mejora o corrección de errores.
 
 ## Licencia
 
