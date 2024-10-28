@@ -235,4 +235,6 @@ Contributions are welcome! Please see `CONTRIBUTING.md` for guidelines on how to
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)

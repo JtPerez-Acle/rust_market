@@ -1,193 +1,182 @@
-# Current Development Progress
+# Rust Market Platform Documentation
 
-## Summary
+## Project Overview
+Rust Market is a high-performance, secure, and scalable real-time marketplace platform developed in Rust. The platform emphasizes safety, concurrency, and robust error handling.
 
-As of today, we have completed the following steps in the `rust_market` project:
+## Project Structure
+```
+rust_market/
+├── src/                    # Source code
+│ ├── main.rs              # Application entry point
+│ ├── lib.rs               # Module declarations
+│ ├── db.rs                # Database connection management
+│ ├── logging.rs           # Logging configuration
+│ ├── models/              # Data models
+│ │ ├── mod.rs            # Models module entry
+│ │ └── [model files]     # Individual model definitions
+│ ├── schema.rs           # Database schema (Diesel generated)
+│ ├── handlers/           # API endpoint handlers
+│ │ ├── mod.rs           # Handlers module entry
+│ │ └── [handler files]  # Individual handler implementations
+│ ├── errors.rs          # Custom error definitions
+│ └── [other modules]    # Additional functionality
+├── tests/                # Test suite
+│ ├── models_tests.rs    # Model tests
+│ ├── handlers_tests.rs  # Handler tests
+│ ├── db_tests.rs        # Database tests
+│ ├── performance_tests.rs # Performance tests
+│ └── logging_tests.rs   # Logging tests
+├── documentation/       # Project documentation
+│ ├── core.md           # Core architecture docs
+│ └── diagrams/         # System diagrams
+├── logs/               # Application logs
+└── scripts/            # Utility scripts
+```
 
-1. **Initialized the Rust Project**
+## Core Components
 
-   - Set up a new Rust project using `cargo init`.
-   - Configured the `Cargo.toml` with necessary dependencies, including `actix-web`, `diesel`, and others.
+### 1. Dependencies (Cargo.toml)
+Key dependencies and their purposes:
+- **actix-web**: Web framework for HTTP server
+- **diesel**: PostgreSQL ORM with type-safe queries
+- **tokio**: Asynchronous runtime
+- **serde**: Serialization/deserialization
+- **flexi_logger**: Advanced logging capabilities
+- **uuid**: Unique identifier generation
+- **bigdecimal**: Precise decimal calculations
 
-2. **Set Up the Database**
+### 2. Core Modules
 
-   - Installed PostgreSQL and created the `rust_market` database.
-   - Used Diesel CLI to set up migrations for the database schema.
+#### Database Management (db.rs)
+- Manages PostgreSQL connection pool using r2d2
+- Implements connection establishment with proper error handling
+- Avoids unwrap() in favor of expect() with meaningful messages
 
-3. **Created Database Migrations**
+#### Models (models/mod.rs)
+Core data structures:
+- **User**: Authentication and profile data
+- **Product**: Marketplace items
+- **Order**: Purchase transactions
+- **OrderItem**: Individual items within orders
 
-   - Developed migrations to create tables for `users`, `products`, `orders`, and `order_items`.
-   - Ensured foreign key relationships and indexing for performance.
+All models implement:
+- Diesel's Queryable and Insertable traits
+- Serde's Serialize and Deserialize for JSON compatibility
 
-4. **Implemented Models**
+#### API Handlers (handlers/)
+Endpoint implementations:
 
-   - Created Rust structs in `src/models/mod.rs` corresponding to the database tables.
-   - Derived necessary traits like `Queryable`, `Insertable`, `Serialize`, and `Deserialize`.
+**Authentication:**
+- POST /api/register: User registration
+- POST /api/login: User authentication
 
-5. **Established Database Connection Pool**
+**Products:**
+- GET /api/products: List products
+- POST /api/products: Create product (Admin)
+- PUT /api/products/{id}: Update product
+- DELETE /api/products/{id}: Remove product
 
-   - Implemented `src/db.rs` to manage the database connection pool using `r2d2`.
-   - Ensured secure error handling and environment variable management.
+**Orders:**
+- POST /api/orders: Create order
+- GET /api/orders: List user orders
+- GET /api/orders/{id}: Order details
 
-6. **Set Up the Actix-Web Server**
+### 3. System Architecture
 
-   - Configured `src/main.rs` to initialize the web server.
-   - Added middleware for logging and prepared the application for routing.
+```mermaid
+flowchart LR
+    subgraph "Client Side"
+        A[Web Browser]
+    end
+    subgraph "Server Side"
+        B[Frontend Server]
+        C[Backend API Server]
+        D[WebSocket Server]
+        E[(Database)]
+        F[(Cache Redis)]
+    end
+    A <--> |HTTP/WebSocket| B
+    B <--> |REST API Calls| C
+    B <--> |WebSocket Connections| D
+    C <--> |Queries| E
+    C <--> |Reads/Writes| F
+    D <--> |Reads from| F
+    C <--> |Pub/Sub| D
+```
 
-7. **Formatted and Linted the Code**
+### 4. Order Processing Workflow
 
-   - Ran `cargo fmt` for code formatting.
-   - Used `cargo clippy` to detect and fix potential issues.
+```mermaid
+sequenceDiagram
+    participant Client as Client Browser
+    participant FrontendServer as Frontend Server
+    participant APIServer as API Server
+    participant Database as Database
+    participant Cache as Redis Cache
+    participant WebSocketServer as WebSocket Server
+    participant OtherClients as Other Clients
 
-8. **Successfully Built the Project**
+    Client->>FrontendServer: Place Order Request
+    FrontendServer->>APIServer: Forward Order Details
+    APIServer->>Database: Begin Transaction
+    APIServer->>Database: Check Stock Availability
+    Database-->>APIServer: Confirm Stock
+    alt Stock Available
+        APIServer->>Database: Reduce Stock Level
+        APIServer->>Database: Create Order Record
+        Database-->>APIServer: Commit Transaction
+        APIServer->>Cache: Update Stock in Cache
+        Cache-->>WebSocketServer: Publish Stock Update
+        APIServer-->>FrontendServer: Confirm Order
+        FrontendServer-->>Client: Display Order Confirmation
+        WebSocketServer-->>OtherClients: Push Stock Update via WebSocket
+    else Stock Unavailable
+        APIServer-->>FrontendServer: Report Insufficient Stock
+        FrontendServer-->>Client: Display Out of Stock Message
+    end
+```
 
-   - Ran `cargo build`, and the project compiled successfully.
-   - Verified that all configurations and dependencies are correctly set up.
+## Testing Strategy
 
-## Next Steps
+### Unit Tests
+- **models_tests.rs**: Data model validation
+- **handlers_tests.rs**: API endpoint behavior
+- **db_tests.rs**: Database operations
+- **logging_tests.rs**: Logging system
 
-To continue the development workflow, here are the planned tasks:
+### Performance Tests
+Located in performance_tests.rs:
+- Write/read operation timing
+- Throughput measurements
+- Performance metric logging
 
-1. **Implement API Endpoints**
+## Monitoring and Debugging
 
-   - **User Authentication**
+### Logging System
+- Configured in logging.rs
+- Uses flexi_logger for structured logging
+- Logs stored in logs/rust_market_<timestamp>.log
 
-     - **Register New Users**: `POST /api/register`
-       - Implement user registration with input validation.
-       - Hash passwords securely before storing them in the database.
-       - Use `Option` and `Result` types for robust error handling.
-       - Avoid using `unwrap()`; prefer `expect("Meaningful error message")`.
+### Log Analysis
+Script: scripts/view_logs.sh
+- Parses performance metrics
+- Formats JSON logs
+- Provides quick access to system metrics
 
-     - **User Login**: `POST /api/login`
-       - Authenticate users and generate JWT tokens for session management.
-       - Ensure sensitive data is handled securely.
-       - Provide clear error messages without exposing internal details.
+## Best Practices Implemented
+1. Strong error handling using custom error types
+2. Proper database connection pooling
+3. Structured logging throughout the application
+4. Comprehensive test coverage
+5. Clear separation of concerns
+6. Transaction-based data operations
+7. Real-time updates via WebSocket
+8. Cache implementation for performance
+9. Secure authentication flow
+10. Input validation and sanitization
 
-     - **Secure Endpoints**
-       - Protect routes using middleware that verifies JWT tokens.
-       - Implement role-based access control for admin and user functionalities.
+## Frontend Development Guide
 
-   - **Product Management**
+### API Endpoints Reference
 
-     - **List Products**: `GET /api/products`
-       - Retrieve a list of products with pagination support.
-       - Cache frequent queries using Redis to improve performance.
-
-     - **Create Product (Admin)**: `POST /api/products`
-       - Allow admins to add new products with detailed validation.
-       - Ensure data integrity and proper error handling.
-
-     - **Update Product (Admin)**: `PUT /api/products/{id}`
-       - Implement updates with optimistic locking to prevent race conditions.
-       - Validate input data and handle potential errors gracefully.
-
-     - **Delete Product (Admin)**: `DELETE /api/products/{id}`
-       - Soft-delete products to maintain historical data.
-       - Confirm actions to prevent accidental deletions.
-
-   - **Order Processing**
-
-     - **Create Order**: `POST /api/orders`
-       - Validate stock availability before confirming orders.
-       - Implement transactional operations to maintain consistency.
-       - Provide real-time feedback to the user on order status.
-
-     - **Get User Orders**: `GET /api/orders`
-       - Retrieve a list of orders specific to the authenticated user.
-       - Ensure data is delivered securely and efficiently.
-
-     - **Get Order Details**: `GET /api/orders/{id}`
-       - Provide detailed information about a specific order.
-       - Verify that the requesting user has permission to access the order.
-
-2. **Set Up WebSocket Communication**
-
-   - Implement the WebSocket server using `tokio-tungstenite` to handle real-time stock updates.
-   - **Integrate with Redis** for pub/sub to broadcast stock changes.
-   - Use `tokio` for asynchronous operations to manage concurrency effectively.
-   - Ensure that structs used in WebSocket communications derive `Serialize` and `Deserialize`.
-
-3. **Integrate Redis Cache**
-
-   - Use Redis for caching frequently accessed data such as product listings.
-   - Implement functions to update and retrieve data from Redis with proper error handling.
-   - Limit cache size and implement expiration policies to manage memory usage.
-
-4. **Improve Error Handling**
-
-   - Use custom error types with the `thiserror` crate to provide detailed error information.
-   - Handle errors at each layer of the application to prevent panics and crashes.
-   - Log errors appropriately using the `log` crate, without exposing sensitive information.
-
-5. **Add Input Validation**
-
-   - Validate all incoming data using crates like `validator` or `serde_valid`.
-   - Implement validation annotations on data models to ensure consistency.
-   - Return informative error messages to the client when validation fails.
-
-6. **Implement Logging and Monitoring**
-
-   - Enhance logging using `env_logger` or similar crates to capture detailed runtime information.
-   - Set up monitoring tools like Prometheus and Grafana for performance tracking.
-   - Use structured logging to facilitate analysis and debugging.
-
-7. **Write Tests**
-
-   - **Unit Tests**
-     - Write tests for individual functions and modules.
-     - Use mocking where necessary to isolate components.
-
-   - **Integration Tests**
-     - Test API endpoints using `actix-web`'s testing utilities.
-     - Simulate database interactions with a test database instance.
-
-   - **Performance Tests**
-     - Assess the application's performance under load.
-     - Identify and address bottlenecks in the system.
-
-8. **Update Documentation**
-
-   - Keep `documentation/core.md` up to date with new changes and architectural decisions.
-   - Add any new diagrams or update existing ones in `documentation/diagrams/`.
-   - Document API endpoints using tools like OpenAPI/Swagger for clarity.
-
-9. **Implement AI-Based Features**
-
-   - **Personalized Recommendations**
-     - Integrate AI APIs to provide product recommendations based on user behavior.
-     - Handle external API calls using `reqwest`, ensuring robust error handling and retries.
-     - Parse JSON responses carefully to prevent runtime errors and ensure data integrity.
-
-   - **Chatbot Integration**
-     - Incorporate a chatbot for customer support using AI APIs.
-     - Implement rate limiting to manage API usage and adhere to provider policies.
-
-   - **Strong Error Handling**
-     - Validate and sanitize all AI-generated content before displaying it to users.
-     - Log API interactions for monitoring and debugging purposes.
-
-10. **Security Enhancements**
-
-    - **Input Sanitization**
-      - Prevent SQL injection, XSS, and other common vulnerabilities.
-      - Use parameterized queries with Diesel to safeguard database interactions.
-
-    - **Authentication Security**
-      - Implement two-factor authentication (2FA) for enhanced account security.
-      - Use secure cookies and ensure proper session management.
-
-    - **Cargo Clippy and Auditing**
-      - Regularly run `cargo clippy` for linting and security checks.
-      - Use `cargo audit` to detect vulnerable dependencies.
-
-    - **Secure WebSockets**
-      - Employ TLS for WebSocket connections (WSS) to encrypt data in transit.
-      - Validate messages to prevent injection attacks over WebSockets.
-
-    - **Dependency Management**
-      - Keep all libraries and dependencies up to date.
-      - Monitor for security advisories related to the project's dependencies.
-
----
-
-_This updated workflow outlines our current position and the steps ahead. Focusing on these tasks will enhance the functionality, security, and performance of the `rust_market` project._
+#### Authentication Endpoints
