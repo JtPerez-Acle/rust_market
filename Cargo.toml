@@ -5,7 +5,8 @@ edition = "2021"
 
 [dependencies]
 actix-web = { version = "4.4", features = ["macros"] }
-diesel = { version = "2.1.4", features = ["postgres", "numeric", "r2d2", "chrono", "serde_json"] }
+diesel = { version = "2.1.4", features = ["postgres", "numeric", "r2d2", "chrono", "serde_json", "postgres_backend"] }
+diesel_migrations = { version = "2.1.0", features = ["postgres"] }
 bigdecimal = { version = "0.4", features = ["serde"] }
 dotenv = "0.15.0"
 tokio = { version = "1.32", features = ["full"] }
@@ -23,3 +24,7 @@ time = "0.3"
 [dev-dependencies]
 dotenv = "0.15.0"
 temp-env = "0.3.6"
+
+[lib]
+name = "rust_market"
+path = "src/lib.rs"

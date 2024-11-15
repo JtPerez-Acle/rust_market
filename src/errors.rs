@@ -17,21 +17,17 @@ pub enum MyError {
 impl ResponseError for MyError {
     fn error_response(&self) -> HttpResponse {
         match self {
-            MyError::DieselError(err) => {
-                error!("Database error: {}", err);
-                HttpResponse::InternalServerError().json("Database Error")
+            MyError::DatabaseError(_) => {
+                HttpResponse::ServiceUnavailable().body("Database connection failed")
             }
-            MyError::ActixError(err) => {
-                error!("Actix error: {}", err);
-                HttpResponse::InternalServerError().json("Server Error")
+            MyError::ValidationError(_) => {
+                HttpResponse::BadRequest().body("Invalid input provided")
             }
-            MyError::DatabaseError(msg) => {
-                error!("Database connection error: {}", msg);
-                HttpResponse::ServiceUnavailable().json(msg)
+            MyError::DieselError(_) => {
+                HttpResponse::InternalServerError().body("A database error occurred")
             }
-            MyError::ValidationError(msg) => {
-                error!("Validation error: {}", msg);
-                HttpResponse::BadRequest().json(msg)
+            MyError::ActixError(_) => {
+                HttpResponse::InternalServerError().body("An internal server error occurred")
             }
         }
     }

@@ -1,4 +1,4 @@
-// Copyright 2024 [Your Name or Company Name]
+// Copyright 2024 Jose Tomas Perez-Acle
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,136 +13,37 @@
 // limitations under the License.
 
 use diesel::prelude::*;
-use chrono::{NaiveDateTime, Utc};
-use serde::{Serialize, Deserialize};
+use chrono::{DateTime, Utc};
 use bigdecimal::BigDecimal;
+use serde::{Serialize, Deserialize};
 
-// Import schema modules
-use crate::schema::{users, products, orders, order_items};
-
-#[derive(Queryable, Identifiable, Serialize, Deserialize, Clone, Debug)]
-#[diesel(table_name = users)]
-pub struct User {
-    pub id: i32,
-    pub username: String,
-    pub email: String,
-    pub password_hash: String,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
-}
-
-#[derive(Insertable, Serialize, Deserialize, Clone, Debug)]
-#[diesel(table_name = users)]
-pub struct NewUser {
-    pub username: String,
-    pub email: String,
-    pub password_hash: String,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
-}
-
-impl NewUser {
-    pub fn new(username: String, email: String, password_hash: String) -> Self {
-        let now = Utc::now().naive_utc();
-        Self {
-            username,
-            email,
-            password_hash,
-            created_at: now,
-            updated_at: now,
-        }
-    }
-}
-
-#[derive(Queryable, Identifiable, Serialize, Deserialize, Debug)]
-#[diesel(table_name = products)]
-pub struct Product {
+#[derive(Queryable, Serialize, Deserialize, Debug)]
+pub struct Asset {
     pub id: i32,
     pub name: String,
-    pub description: Option<String>,
     pub price: BigDecimal,
-    pub stock_level: i32,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
+    pub stock: i32,
+    pub image_url: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Insertable, Serialize, Deserialize, Debug)]
-#[diesel(table_name = products)]
-pub struct NewProduct {
+#[derive(Insertable, Debug)]
+#[diesel(table_name = crate::schema::assets)]
+pub struct NewAsset {
     pub name: String,
-    pub description: Option<String>,
     pub price: BigDecimal,
-    pub stock_level: i32,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
+    pub stock: i32,
+    pub image_url: String,
 }
 
-impl NewProduct {
-    pub fn new(name: String, description: Option<String>, price: BigDecimal, stock_level: i32) -> Self {
-        let now = Utc::now().naive_utc();
-        Self {
+impl NewAsset {
+    pub fn new(name: String, price: BigDecimal, stock: i32, image_url: String) -> Self {
+        NewAsset {
             name,
-            description,
             price,
-            stock_level,
-            created_at: now,
-            updated_at: now,
+            stock,
+            image_url,
         }
     }
-}
-
-#[derive(Queryable, Identifiable, Associations, Serialize, Deserialize, Debug)]
-#[diesel(belongs_to(User))]
-#[diesel(table_name = orders)]
-pub struct Order {
-    pub id: i32,
-    pub user_id: i32,
-    pub status: String,
-    pub total_amount: BigDecimal,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
-}
-
-#[derive(Insertable, Serialize, Deserialize, Debug)]
-#[diesel(table_name = orders)]
-pub struct NewOrder {
-    pub user_id: i32,
-    pub status: String,
-    pub total_amount: BigDecimal,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
-}
-
-impl NewOrder {
-    pub fn new(user_id: i32, status: String, total_amount: BigDecimal) -> Self {
-        let now = Utc::now().naive_utc();
-        Self {
-            user_id,
-            status,
-            total_amount,
-            created_at: now,
-            updated_at: now,
-        }
-    }
-}
-
-#[derive(Queryable, Identifiable, Associations, Serialize, Deserialize, Debug)]
-#[diesel(belongs_to(Order))]
-#[diesel(belongs_to(Product))]
-#[diesel(table_name = order_items)]
-pub struct OrderItem {
-    pub id: i32,
-    pub order_id: i32,
-    pub product_id: i32,
-    pub quantity: i32,
-    pub price_at_time: BigDecimal,
-}
-
-#[derive(Insertable, Serialize, Deserialize, Debug)]
-#[diesel(table_name = order_items)]
-pub struct NewOrderItem {
-    pub order_id: i32,
-    pub product_id: i32,
-    pub quantity: i32,
-    pub price_at_time: BigDecimal,
 }

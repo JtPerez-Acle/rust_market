@@ -5,8 +5,13 @@ use log::info;
 use std::error::Error as StdError;
 use std::time::Instant;
 use crate::logging::{log_performance_metrics, PerformanceMetric, MetricType};
+use diesel::prelude::*;
+use crate::models::Asset;
+use crate::schema::assets;
+use bigdecimal::BigDecimal;
+use std::str::FromStr;
 
-pub type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
+pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
 #[derive(Debug)]
 pub enum Error {
@@ -25,11 +30,9 @@ impl std::fmt::Display for Error {
 
 impl StdError for Error {}
 
-/// Establishes a connection pool to the PostgreSQL database
-pub fn establish_connection_pool(database_url: Option<&str>) -> Result<DbPool, Box<dyn StdError>> {
+pub fn establish_connection_pool(database_url: Option<&str>) -> Result<Pool, Box<dyn StdError>> {
     let start = Instant::now();
     
-    // Get database URL
     let database_url = match database_url {
         Some(url) => url.to_string(),
         None => {
@@ -52,10 +55,8 @@ pub fn establish_connection_pool(database_url: Option<&str>) -> Result<DbPool, B
         }
     };
 
-    // Create a connection manager
     let manager = ConnectionManager::<PgConnection>::new(database_url.clone());
 
-    // Create the connection pool
     match r2d2::Pool::builder().build(manager) {
         Ok(pool) => {
             log_performance_metrics(PerformanceMetric::new(
@@ -82,4 +83,60 @@ pub fn establish_connection_pool(database_url: Option<&str>) -> Result<DbPool, B
             Err(Box::new(Error::ConnectionError(e.to_string())))
         }
     }
+}
+
+pub fn get_all_assets(pool: &Pool) -> Result<Vec<Asset>, diesel::result::Error> {
+    let conn = &mut pool.get().unwrap();
+    assets::table.load::<Asset>(conn)
+}
+
+pub fn buy_asset(pool: &Pool, asset_id: i32, quantity: i32) -> Result<(), diesel::result::Error> {
+    let conn = &mut pool.get().unwrap();
+    
+    conn.transaction(|conn| {
+        let asset: Asset = assets::table.find(asset_id).first(conn)?;
+        
+        if asset.stock < quantity {
+            return Err(diesel::result::Error::RollbackTransaction);
+        }
+
+        diesel::update(assets::table.find(asset_id))
+            .set(assets::stock.eq(asset.stock - quantity))
+            .execute(conn)?;
+
+        Ok(())
+    })
+}
+
+pub fn sell_asset(pool: &Pool, asset_id: i32, quantity: i32) -> Result<(), diesel::result::Error> {
+    let conn = &mut pool.get().unwrap();
+    
+    diesel::update(assets::table.find(asset_id))
+        .set(assets::stock.eq(assets::stock + quantity))
+        .execute(conn)?;
+
+    Ok(())
+}
+
+pub fn update_asset_price(pool: &Pool, asset_id: i32, new_price: f64) -> Result<(), diesel::result::Error> {
+    let conn = &mut pool.get().unwrap();
+    
+    let decimal_price = BigDecimal::from_str(&new_price.to_string())
+        .map_err(|_| diesel::result::Error::RollbackTransaction)?;
+    
+    diesel::update(assets::table.find(asset_id))
+        .set(assets::price.eq(decimal_price))
+        .execute(conn)?;
+
+    Ok(())
+}
+
+pub fn update_asset_stock(pool: &Pool, asset_id: i32, new_stock: i32) -> Result<(), diesel::result::Error> {
+    let conn = &mut pool.get().unwrap();
+    
+    diesel::update(assets::table.find(asset_id))
+        .set(assets::stock.eq(new_stock))
+        .execute(conn)?;
+
+    Ok(())
 }

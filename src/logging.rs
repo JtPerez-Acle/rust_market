@@ -1,50 +1,82 @@
 use flexi_logger::{
     FileSpec, Logger, WriteMode, Duplicate,
 };
-use log::{info, debug};
+use log::{info, debug, error};
 use std::error::Error;
 use std::time::Duration;
 use chrono::Utc;
 use std::sync::Once;
 use serde_json::json;
+use std::path::Path;
+use chrono::Local;
 
 // Static variable to ensure single initialization
-static LOGGER_INIT: Once = Once::new();
+static INIT_LOGGER: Once = Once::new();
+static mut LOGGER_INITIALIZED: bool = false;
 
 /// Initializes the logger for the application
 /// Returns Result indicating success or failure of logger initialization
 pub fn init_logger() -> Result<(), Box<dyn Error>> {
-    LOGGER_INIT.call_once(|| {
-        // Updated log specification to completely suppress r2d2 authentication errors
-        let log_spec = "debug,r2d2=error,diesel=warn";  // Changed r2d2 from warn to error
+    unsafe {
+        if LOGGER_INITIALIZED {
+            return Ok(());
+        }
+    }
 
-        Logger::try_with_str(log_spec)
-            .and_then(|logger| {
+    let mut initialization_success = false;
+    
+    INIT_LOGGER.call_once(|| {
+        let is_test = std::env::var("RUST_TEST").is_ok();
+        let log_dir = if is_test {
+            Path::new("tests/logs")
+        } else {
+            Path::new("logs")
+        };
+
+        // Create the directory if it doesn't exist
+        if let Err(e) = std::fs::create_dir_all(log_dir) {
+            error!("Failed to create log directory: {}", e);
+            return;
+        }
+
+        let date_str = Local::now().format("%Y-%m-%d_%H-%M-%S").to_string();
+        let file_name = if is_test {
+            format!("rust_market_test_{}", date_str)
+        } else {
+            format!("rust_market_{}", date_str)
+        };
+
+        // Initialize flexi_logger
+        let logger_result = Logger::try_with_str("debug")
+            .map(|logger| {
                 logger
                     .log_to_file(
                         FileSpec::default()
-                            // Use absolute path for the logs directory
-                            .directory("/home/jtdev/Desktop/rust_projects/rust_market/logs")
-                            .basename("rust_market")
-                            .discriminant("r")
-                            .suffix("log"),
+                            .directory(log_dir)
+                            .basename(file_name)
                     )
                     .write_mode(WriteMode::BufferAndFlush)
-                    .format(flexi_logger::detailed_format)
-                    .duplicate_to_stderr(Duplicate::Error)
                     .start()
-            })
-            .unwrap_or_else(|e| {
-                panic!("Failed to initialize logger: {}", e);
             });
 
-        // Log initialization success
-        info!("Logger initialized at {}", Utc::now());
-        info!("Log level set to {}", log_spec);
-        info!("----------------------------------------");
+        match logger_result {
+            Ok(Ok(_)) => {
+                unsafe { 
+                    LOGGER_INITIALIZED = true;
+                }
+                initialization_success = true;
+            },
+            _ => {
+                error!("Failed to initialize logger");
+            }
+        }
     });
 
-    Ok(())
+    if initialization_success {
+        Ok(())
+    } else {
+        Err("Logger initialization failed".into())
+    }
 }
 
 // Performance metric types
@@ -136,11 +168,14 @@ mod tests {
 
     #[test]
     fn test_logger_initialization() {
-        // First initialization should succeed
+        // Set test environment variable
+        std::env::set_var("RUST_TEST", "1");
+        
+        // First initialization
         let result1 = init_logger();
         assert!(result1.is_ok(), "First logger initialization should succeed");
 
-        // Second initialization should also succeed (but won't actually initialize again)
+        // Second initialization should succeed (but actually do nothing)
         let result2 = init_logger();
         assert!(result2.is_ok(), "Second logger initialization should succeed");
     }

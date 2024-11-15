@@ -5,6 +5,10 @@ use log::info;
 use std::fs;
 use chrono::Utc;
 use std::sync::Once;
+use diesel::r2d2::{self, ConnectionManager};
+use diesel::PgConnection;
+use crate::db;
+use actix_web::web;
 
 // Used to ensure logger is initialized only once
 static INIT: Once = Once::new();
@@ -33,6 +37,22 @@ pub fn setup() {
 
     // Log test execution
     info!("Running test setup at {}", Utc::now());
+}
+
+/// Sets up a test database connection pool
+pub async fn setup_test_db() -> web::Data<db::Pool> {
+    dotenv::dotenv().ok();
+    
+    // Use a specific test database URL
+    let database_url = std::env::var("DATABASE_URL_TEST")
+        .expect("DATABASE_URL_TEST must be set");
+    
+    let manager = ConnectionManager::<PgConnection>::new(database_url);
+    let pool = r2d2::Pool::builder()
+        .build(manager)
+        .expect("Failed to create test pool");
+
+    web::Data::new(pool)
 }
 
 #[cfg(test)]

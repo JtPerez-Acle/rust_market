@@ -1,6 +1,18 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    assets (id) {
+        id -> Int4,
+        name -> Varchar,
+        price -> Numeric,
+        stock -> Int4,
+        image_url -> Varchar,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     order_items (id) {
         id -> Int4,
         order_id -> Int4,
@@ -49,6 +61,7 @@ diesel::joinable!(order_items -> products (product_id));
 diesel::joinable!(orders -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    assets,
     order_items,
     orders,
     products,
