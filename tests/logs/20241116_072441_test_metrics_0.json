@@ -1,0 +1,84 @@
+{
+  "test_name": "order_limits",
+  "test_description": "Test order processing limits and constraints",
+  "start_time": 1731752681,
+  "end_time": 1731752681,
+  "success": true,
+  "operation_stats": {
+    "concurrent_order": {
+      "operation_type": "concurrent_order",
+      "count": 10,
+      "total_duration_ms": 1,
+      "min_duration_ms": 0,
+      "max_duration_ms": 1,
+      "avg_duration_ms": 0.1,
+      "error_count": 0,
+      "latency_distribution": {
+        "10-50ms": 0,
+        "0-10ms": 10,
+        "50-100ms": 0,
+        ">500ms": 0,
+        "100-500ms": 0
+      }
+    },
+    "zero_quantity_order": {
+      "operation_type": "zero_quantity_order",
+      "count": 1,
+      "total_duration_ms": 1,
+      "min_duration_ms": 1,
+      "max_duration_ms": 1,
+      "avg_duration_ms": 1.0,
+      "error_count": 0,
+      "latency_distribution": {
+        ">500ms": 0,
+        "0-10ms": 1,
+        "50-100ms": 0,
+        "100-500ms": 0,
+        "10-50ms": 0
+      }
+    },
+    "negative_quantity_order": {
+      "operation_type": "negative_quantity_order",
+      "count": 1,
+      "total_duration_ms": 0,
+      "min_duration_ms": 0,
+      "max_duration_ms": 0,
+      "avg_duration_ms": 0.0,
+      "error_count": 0,
+      "latency_distribution": {
+        "10-50ms": 0,
+        "100-500ms": 0,
+        ">500ms": 0,
+        "50-100ms": 0,
+        "0-10ms": 1
+      }
+    },
+    "excess_stock_order": {
+      "operation_type": "excess_stock_order",
+      "count": 1,
+      "total_duration_ms": 0,
+      "min_duration_ms": 0,
+      "max_duration_ms": 0,
+      "avg_duration_ms": 0.0,
+      "error_count": 0,
+      "latency_distribution": {
+        "100-500ms": 0,
+        "50-100ms": 0,
+        ">500ms": 0,
+        "0-10ms": 1,
+        "10-50ms": 0
+      }
+    }
+  },
+  "error_message": null,
+  "total_operations": 13,
+  "operations_per_second": 0.0,
+  "concurrent_users": null,
+  "concurrency_metrics": {
+    "peak_concurrent_operations": 1,
+    "avg_concurrent_operations": 1.0,
+    "total_timeouts": 0,
+    "total_conflicts": 0
+  },
+  "resource_metrics": []
+}

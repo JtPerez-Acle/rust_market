@@ -1,0 +1,30 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db/rust_market
+      - RUST_LOG=debug
+    depends_on:
+      - db
+    volumes:
+      # Mount source code for development
+      - .:/usr/src/app
+      # Exclude target directory to prevent conflicts
+      - /usr/src/app/target
+    command: bash -c "cargo install cargo-watch && cargo watch -x run"
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=rust_market
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

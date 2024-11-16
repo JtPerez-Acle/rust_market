@@ -6,7 +6,11 @@ use std::error::Error as StdError;
 use std::time::Instant;
 use crate::logging::{log_performance_metrics, PerformanceMetric, MetricType};
 
-pub type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
+pub mod users;
+
+pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
+pub type DbPool = Pool;
+pub type BoxError = Box<dyn StdError + Send + Sync + 'static>;
 
 #[derive(Debug)]
 pub enum Error {
@@ -26,7 +30,7 @@ impl std::fmt::Display for Error {
 impl StdError for Error {}
 
 /// Establishes a connection pool to the PostgreSQL database
-pub fn establish_connection_pool(database_url: Option<&str>) -> Result<DbPool, Box<dyn StdError>> {
+pub fn establish_connection_pool(database_url: Option<&str>) -> Result<DbPool, BoxError> {
     let start = Instant::now();
     
     // Get database URL

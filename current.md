@@ -25,7 +25,8 @@ rust_market/
 │ ├── handlers_tests.rs  # Handler tests
 │ ├── db_tests.rs        # Database tests
 │ ├── performance_tests.rs # Performance tests
-│ └── logging_tests.rs   # Logging tests
+│ ├── logging_tests.rs   # Logging tests
+│ └── test_helpers.rs   # Test helpers
 ├── documentation/       # Project documentation
 │ ├── core.md           # Core architecture docs
 │ └── diagrams/         # System diagrams
@@ -149,6 +150,80 @@ Located in performance_tests.rs:
 - Write/read operation timing
 - Throughput measurements
 - Performance metric logging
+
+## Test Infrastructure
+
+### Database Management
+```mermaid
+flowchart TD
+    A[Test Start] --> B{Transaction Started?}
+    B -->|Yes| C[Run Test in Transaction]
+    B -->|No| D[Start Transaction]
+    D --> C
+    C --> E[Test Execution]
+    E --> F{Test Passed?}
+    F -->|Yes| G[Rollback Transaction]
+    F -->|No| H[Rollback Transaction]
+    G --> I[Cleanup Database]
+    H --> I
+    I --> J[Log Test Results]
+```
+
+### Test Helpers (test_helpers.rs)
+Key Features:
+1. **Database Cleanup**
+   - Automatic table cleanup in correct dependency order
+   - Robust error handling with detailed logging
+   - Transaction-based cleanup operations
+
+2. **Test Isolation**
+   - Each test runs in its own transaction
+   - Automatic rollback after test completion
+   - Prevents test interference
+
+3. **Error Handling**
+   - Comprehensive error logging
+   - Graceful failure handling
+   - Detailed error context preservation
+
+4. **Logging Infrastructure**
+   - Test-specific log configuration
+   - Structured log format
+   - Error tracing capabilities
+
+### Test Logging System
+```mermaid
+flowchart LR
+    A[Test Execution] --> B[Log Handler]
+    B --> C{Log Level}
+    C -->|Error| D[Error Log]
+    C -->|Info| E[Info Log]
+    C -->|Debug| F[Debug Log]
+    D --> G[File Logger]
+    E --> G
+    F --> G
+    G --> H[Log File]
+    G --> I[Console Output]
+```
+
+### Error Handling Flow
+```mermaid
+sequenceDiagram
+    participant Test as Test Case
+    participant Handler as Error Handler
+    participant Logger as Logger
+    participant DB as Database
+    
+    Test->>Handler: Operation Result
+    alt Success
+        Handler->>Logger: Log Success Info
+        Logger->>Test: Continue Execution
+    else Failure
+        Handler->>Logger: Log Error Details
+        Handler->>DB: Rollback Transaction
+        Logger->>Test: Report Failure
+    end
+```
 
 ## Monitoring and Debugging
 

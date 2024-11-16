@@ -1,6 +1,0 @@
-INFO [rust_market::db] No URL provided, attempting to read from environment
-INFO [rust_market::logging] PERFORMANCE_METRIC - 2024-10-25T20:39:44.670082309+00:00 - Operation: establish_connection_pool, Status: SUCCESS, Duration: 72.74ms, Type: System, Details: Pool created successfully
-INFO [rust_market] 🚀 Starting HTTP server at http://127.0.0.1:8080
-INFO [actix_server::builder] starting 2 workers
-INFO [actix_server::server] Actix runtime found; starting in Actix runtime
-INFO [actix_server::server] starting service: "actix-web-service-127.0.0.1:8080", workers: 2, listening on: 127.0.0.1:8080

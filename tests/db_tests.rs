@@ -27,7 +27,9 @@ fn test_establish_connection_pool_missing_env() {
     }
     
     assert!(result.is_err(), "Connection pool should fail without DATABASE_URL_TEST");
-    assert!(result.unwrap_err().to_string().contains("DATABASE_URL_TEST not found"));
+    let err = result.unwrap_err();
+    assert!(err.to_string().contains("DATABASE_URL_TEST not found in environment"), 
+           "Error message should indicate missing DATABASE_URL_TEST environment variable");
 }
 
 #[test]

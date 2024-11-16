@@ -1,0 +1,84 @@
+{
+  "test_name": "user_crud",
+  "test_description": "Test basic user CRUD operations",
+  "start_time": 1731752711,
+  "end_time": 1731752711,
+  "success": true,
+  "operation_stats": {
+    "read_user": {
+      "operation_type": "read_user",
+      "count": 1,
+      "total_duration_ms": 1,
+      "min_duration_ms": 1,
+      "max_duration_ms": 1,
+      "avg_duration_ms": 1.0,
+      "error_count": 0,
+      "latency_distribution": {
+        "10-50ms": 0,
+        ">500ms": 0,
+        "0-10ms": 1,
+        "50-100ms": 0,
+        "100-500ms": 0
+      }
+    },
+    "delete_user": {
+      "operation_type": "delete_user",
+      "count": 1,
+      "total_duration_ms": 0,
+      "min_duration_ms": 0,
+      "max_duration_ms": 0,
+      "avg_duration_ms": 0.0,
+      "error_count": 0,
+      "latency_distribution": {
+        "0-10ms": 1,
+        "50-100ms": 0,
+        ">500ms": 0,
+        "100-500ms": 0,
+        "10-50ms": 0
+      }
+    },
+    "create_user": {
+      "operation_type": "create_user",
+      "count": 1,
+      "total_duration_ms": 0,
+      "min_duration_ms": 0,
+      "max_duration_ms": 0,
+      "avg_duration_ms": 0.0,
+      "error_count": 0,
+      "latency_distribution": {
+        ">500ms": 0,
+        "10-50ms": 0,
+        "50-100ms": 0,
+        "100-500ms": 0,
+        "0-10ms": 1
+      }
+    },
+    "update_user": {
+      "operation_type": "update_user",
+      "count": 1,
+      "total_duration_ms": 0,
+      "min_duration_ms": 0,
+      "max_duration_ms": 0,
+      "avg_duration_ms": 0.0,
+      "error_count": 0,
+      "latency_distribution": {
+        "50-100ms": 0,
+        "10-50ms": 0,
+        "100-500ms": 0,
+        ">500ms": 0,
+        "0-10ms": 1
+      }
+    }
+  },
+  "error_message": null,
+  "total_operations": 4,
+  "operations_per_second": 0.0,
+  "concurrent_users": null,
+  "concurrency_metrics": {
+    "peak_concurrent_operations": 1,
+    "avg_concurrent_operations": 1.0,
+    "total_timeouts": 0,
+    "total_conflicts": 0
+  },
+  "resource_metrics": []
+}

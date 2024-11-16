@@ -1,10 +1,13 @@
 use dotenv::dotenv;
 use std::env;
 use crate::logging;
-use log::info;
+use log::{info, error};
 use std::fs;
 use chrono::Utc;
 use std::sync::Once;
+use diesel::RunQueryDsl;
+use crate::schema::{users::dsl::*, orders::dsl::*, order_items::dsl::*, products::dsl::*};
+use crate::db;
 
 // Used to ensure logger is initialized only once
 static INIT: Once = Once::new();
@@ -33,6 +36,42 @@ pub fn setup() {
 
     // Log test execution
     info!("Running test setup at {}", Utc::now());
+}
+
+pub fn cleanup_database(pool: &db::DbPool) {
+    let conn = &mut pool.get().expect("Failed to get db connection");
+    info!("Starting database cleanup at {}", Utc::now());
+    
+    // Use a transaction to ensure atomicity of cleanup operations
+    conn.build_transaction()
+        .read_write()
+        .run(|conn| {
+            // Delete in order of dependencies to avoid foreign key violations
+            match diesel::delete(order_items).execute(conn) {
+                Ok(count) => info!("Deleted {} records from order_items", count),
+                Err(e) => error!("Failed to clean up order_items table: {}", e),
+            }
+                
+            match diesel::delete(orders).execute(conn) {
+                Ok(count) => info!("Deleted {} records from orders", count),
+                Err(e) => error!("Failed to clean up orders table: {}", e),
+            }
+                
+            match diesel::delete(products).execute(conn) {
+                Ok(count) => info!("Deleted {} records from products", count),
+                Err(e) => error!("Failed to clean up products table: {}", e),
+            }
+                
+            match diesel::delete(users).execute(conn) {
+                Ok(count) => info!("Deleted {} records from users", count),
+                Err(e) => error!("Failed to clean up users table: {}", e),
+            }
+            
+            Ok::<_, diesel::result::Error>(())
+        })
+        .expect("Failed to execute cleanup transaction");
+    
+    info!("Completed database cleanup at {}", Utc::now());
 }
 
 #[cfg(test)]

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use diesel::prelude::*;
+use diesel::{Queryable, Selectable, Identifiable, Associations, Insertable};
 use chrono::{NaiveDateTime, Utc};
 use serde::{Serialize, Deserialize};
 use bigdecimal::BigDecimal;
@@ -20,7 +20,7 @@ use bigdecimal::BigDecimal;
 // Import schema modules
 use crate::schema::{users, products, orders, order_items};
 
-#[derive(Queryable, Identifiable, Serialize, Deserialize, Clone, Debug)]
+#[derive(Queryable, Selectable, Identifiable, Serialize, Deserialize, Clone, Debug)]
 #[diesel(table_name = users)]
 pub struct User {
     pub id: i32,
@@ -54,7 +54,7 @@ impl NewUser {
     }
 }
 
-#[derive(Queryable, Identifiable, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Selectable, Identifiable, Serialize, Deserialize, Clone, Debug)]
 #[diesel(table_name = products)]
 pub struct Product {
     pub id: i32,
@@ -91,7 +91,7 @@ impl NewProduct {
     }
 }
 
-#[derive(Queryable, Identifiable, Associations, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Selectable, Identifiable, Associations, Serialize, Deserialize, Debug)]
 #[diesel(belongs_to(User))]
 #[diesel(table_name = orders)]
 pub struct Order {
@@ -126,7 +126,7 @@ impl NewOrder {
     }
 }
 
-#[derive(Queryable, Identifiable, Associations, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Selectable, Identifiable, Associations, Serialize, Deserialize, Debug)]
 #[diesel(belongs_to(Order))]
 #[diesel(belongs_to(Product))]
 #[diesel(table_name = order_items)]
