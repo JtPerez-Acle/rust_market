@@ -5,26 +5,40 @@ services:
       - "8080:8080"
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db/rust_market
+      - DATABASE_URL_TEST=postgres://postgres:postgres@db/rust_market_test
       - RUST_LOG=debug
+      - RUST_BACKTRACE=1
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       # Mount source code for development
       - .:/usr/src/app
       # Exclude target directory to prevent conflicts
       - /usr/src/app/target
-    command: bash -c "cargo install cargo-watch && cargo watch -x run"
+    command: bash -c "
+      cargo install cargo-watch diesel_cli --no-default-features --features postgres &&
+      diesel setup &&
+      diesel migration run &&
+      cargo watch -x run
+      "
 
   db:
     image: postgres:15
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=rust_market
+      - POSTGRES_MULTIPLE_DATABASES=rust_market,rust_market_test
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

@@ -17,7 +17,17 @@ pub fn create_user(pool: &crate::db::DbPool, new_user: NewUser) -> Result<User, 
         .map_err(|error| {
             error!("Failed to create user: {:?}", error);
             // Convert the diesel error into our ServiceError
-            error.into()
+            match error {
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::UniqueViolation,
+                    _
+                ) => ServiceError::Conflict(format!(
+                    "User with username '{}' or email '{}' already exists",
+                    new_user.username,
+                    new_user.email
+                )),
+                _ => ServiceError::DatabaseError(error.to_string())
+            }
         })
 }
 

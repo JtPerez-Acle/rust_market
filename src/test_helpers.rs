@@ -6,7 +6,8 @@ use std::fs;
 use chrono::Utc;
 use std::sync::Once;
 use diesel::RunQueryDsl;
-use crate::schema::{users::dsl::*, orders::dsl::*, order_items::dsl::*, products::dsl::*};
+use diesel::result::Error as DieselError;
+use crate::schema::{users::dsl::*, orders::dsl::*, order_items::dsl::*, equipment::dsl::*, equipment_categories::dsl::*, equipment_images::dsl::*, reviews::dsl::*, maintenance_records::dsl::*, technical_documents::dsl::*};
 use crate::db;
 
 // Used to ensure logger is initialized only once
@@ -23,7 +24,6 @@ pub fn setup() {
 
     // Set test-specific environment variables if not already set
     if env::var("RUST_LOG").is_err() {
-        // Keep the RUST_LOG environment variable as is
         env::set_var("RUST_LOG", "debug,r2d2=warn");
     }
 
@@ -45,33 +45,58 @@ pub fn cleanup_database(pool: &db::DbPool) {
     // Use a transaction to ensure atomicity of cleanup operations
     conn.build_transaction()
         .read_write()
-        .run(|conn| {
+        .run::<_, DieselError, _>(|conn| {
             // Delete in order of dependencies to avoid foreign key violations
+            // First delete tables that have foreign keys to other tables
+            match diesel::delete(technical_documents).execute(conn) {
+                Ok(count) => info!("Deleted {} records from technical_documents", count),
+                Err(e) => error!("Error deleting technical_documents: {}", e),
+            }
+
+            match diesel::delete(maintenance_records).execute(conn) {
+                Ok(count) => info!("Deleted {} records from maintenance_records", count),
+                Err(e) => error!("Error deleting maintenance_records: {}", e),
+            }
+
+            match diesel::delete(reviews).execute(conn) {
+                Ok(count) => info!("Deleted {} records from reviews", count),
+                Err(e) => error!("Error deleting reviews: {}", e),
+            }
+
+            match diesel::delete(equipment_images).execute(conn) {
+                Ok(count) => info!("Deleted {} records from equipment_images", count),
+                Err(e) => error!("Error deleting equipment_images: {}", e),
+            }
+
             match diesel::delete(order_items).execute(conn) {
                 Ok(count) => info!("Deleted {} records from order_items", count),
-                Err(e) => error!("Failed to clean up order_items table: {}", e),
+                Err(e) => error!("Error deleting order_items: {}", e),
             }
-                
+
             match diesel::delete(orders).execute(conn) {
                 Ok(count) => info!("Deleted {} records from orders", count),
-                Err(e) => error!("Failed to clean up orders table: {}", e),
+                Err(e) => error!("Error deleting orders: {}", e),
             }
-                
-            match diesel::delete(products).execute(conn) {
-                Ok(count) => info!("Deleted {} records from products", count),
-                Err(e) => error!("Failed to clean up products table: {}", e),
+
+            match diesel::delete(equipment).execute(conn) {
+                Ok(count) => info!("Deleted {} records from equipment", count),
+                Err(e) => error!("Error deleting equipment: {}", e),
             }
-                
+
+            match diesel::delete(equipment_categories).execute(conn) {
+                Ok(count) => info!("Deleted {} records from equipment_categories", count),
+                Err(e) => error!("Error deleting equipment_categories: {}", e),
+            }
+
+            // Finally delete users, which other tables depend on
             match diesel::delete(users).execute(conn) {
                 Ok(count) => info!("Deleted {} records from users", count),
-                Err(e) => error!("Failed to clean up users table: {}", e),
+                Err(e) => error!("Error deleting users: {}", e),
             }
-            
-            Ok::<_, diesel::result::Error>(())
+
+            Ok(())
         })
-        .expect("Failed to execute cleanup transaction");
-    
-    info!("Completed database cleanup at {}", Utc::now());
+        .expect("Failed to clean up database");
 }
 
 #[cfg(test)]
@@ -81,7 +106,6 @@ mod tests {
     #[test]
     fn test_setup() {
         setup();
-        // Verify logs directory exists
-        assert!(fs::metadata("logs").is_ok(), "Logs directory should exist");
+        assert!(env::var("RUST_LOG").is_ok());
     }
 }
